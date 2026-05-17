@@ -6,9 +6,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-# Streamlit Cloud starts the app from the app/ directory, so the repository
-# root is not always available for imports. Adding it explicitly keeps shared
-# packages such as model/ importable both locally and after deployment.
+# Keep project-level modules importable in local and Streamlit Cloud runs.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -688,8 +686,8 @@ with st.container(border=True):
         vendors = st.multiselect(
             "Постачальники",
             [
-                "Залізна Людина", "Тор", "Галк", "Капітан Америка",
-                "Чорна Вдова", "Соколине Око", "Доктор Стрендж"
+                "Постачальник A", "Постачальник B", "Постачальник C",
+                "Постачальник D", "Постачальник E", "Постачальник F"
             ]
         )
 
@@ -739,9 +737,7 @@ with st.container(border=True):
 
         submitted_assessment = st.button("Оцінити ризики", use_container_width=True)
 
-# Translate user-facing Ukrainian option labels into the numeric feature values
-# expected by the trained model. Keeping this mapping close to the form makes it
-# easier to verify that UI choices and model inputs stay aligned.
+# UI labels are converted into the numeric scale used during model training.
 clarity_map = {
     "Чіткі": 0,
     "Часткові": 1,
@@ -772,13 +768,10 @@ change_by_clarity = {
     "Нечіткі": 8
 }
 
-# The assessment action persists the project for later tracking, prepares the
-# model feature vector, and then renders the prediction output in the same view.
 if submitted_assessment:
     changes = change_by_clarity[clarity]
 
-    # Preserve the original project context in SQLite so it can be selected from
-    # the Risk Register module after the initial assessment is complete.
+    # The project profile is saved for reuse in the risk register.
     project_data = {
         "name": name,
         "type": project_type,
@@ -795,8 +788,7 @@ if submitted_assessment:
 
     insert_project(project_data)
 
-    # Build the exact feature schema used during training. Extra UI-only fields
-    # such as project name are intentionally excluded from the prediction call.
+    # Only model features are passed to the prediction layer.
     ml_data = {
         "project_type": project_type,
         "owner": owner,
@@ -810,11 +802,8 @@ if submitted_assessment:
         "budget": budget
     }
 
-    # Run the trained model and convert the returned risk values into UI metrics.
     result = predict_risk(ml_data)
 
-    # Present the four predicted risk dimensions as compact KPI cards so the user
-    # can scan the result before reading the detailed interpretation.
     st.markdown('<div class="status-text">Оцінку ризиків завершено</div>', unsafe_allow_html=True)
 
     st.subheader("Огляд ризиків")
@@ -842,8 +831,7 @@ if submitted_assessment:
     kpi_card(metric3, "Ризик обсягу", scope, "red")
     kpi_card(metric4, "Ризик ресурсів", resources, "green")
 
-    # Aggregate the four dimensions into a single project-level indicator. This
-    # is a simple dashboard summary, not a separate ML prediction.
+    # Overall risk is a dashboard summary of the four predicted dimensions.
     overall = (deadline + budget_risk + scope + resources) / 4
 
     st.subheader("Загальний ризик проєкту")
@@ -857,8 +845,6 @@ if submitted_assessment:
         unsafe_allow_html=True
     )
 
-    # Convert numeric percentages into business-friendly labels used by the
-    # interpretation cards. Thresholds are intentionally simple for explainability.
     def interpret(value):
         if value < 30:
             return "Низький", "Стабільні умови", "low"
@@ -888,8 +874,6 @@ if submitted_assessment:
     interpretation_card(int3, "Обсяг", scope)
     interpretation_card(int4, "Ресурси", resources)
 
-    # Highlight the most likely drivers behind elevated risks. These rules make
-    # the model output easier to discuss in a project-management context.
     st.subheader("Фактори ризику")
 
     def insight_card(message):
@@ -910,8 +894,6 @@ if submitted_assessment:
     if budget_risk > 40:
         insight_card("Бюджетний ризик може бути пов’язаний зі складністю або постачальниками")
 
-    # Use a lightweight dot plot instead of bars so the distribution reads as a
-    # comparison of risk scores rather than progress toward completion.
     st.subheader("Розподіл ризиків")
 
     chart_data = pd.DataFrame({

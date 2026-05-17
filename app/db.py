@@ -10,8 +10,7 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Stores the project profile captured during risk assessment so the same
-    # project can later be reused by the operational risk register.
+    # Project profiles are saved after assessment and reused in the register.
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,8 +37,7 @@ def init_db():
     )
     """)
 
-    # Stores project-level operational risks that are tracked after the initial
-    # ML-based assessment, including mitigation ownership and lifecycle status.
+    # Register records are stored separately from assessment results.
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS risks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

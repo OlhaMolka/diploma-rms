@@ -2,8 +2,7 @@ import joblib
 import pandas as pd
 from pathlib import Path
 
-# Load the trained multi-output regression model used by the Streamlit app
-# to estimate the four project risk dimensions from a single feature row.
+# Trained regression model used for the four risk dimensions.
 MODEL_DIR = Path(__file__).resolve().parent
 model = joblib.load(MODEL_DIR / "reg_model.pkl")
 

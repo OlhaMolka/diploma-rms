@@ -1,23 +1,35 @@
-# Risk Management System
+# Система управління ризиками ІТ-проєктів
 
-Streamlit application for IT project risk management.
+Streamlit-застосунок для попередньої оцінки та подальшого супроводу ризиків ІТ-проєктів.
 
-The system includes:
+## Функціональність
 
-- Risk Assessment: ML-based prediction of deadline, budget, scope, and resource risks.
-- Risk Register: operational tracking of project risks, probability, impact, mitigation plans, and status.
-- Dashboard: overview of projects and registered risks.
+- Дашборд із загальною статистикою проєктів і зареєстрованих ризиків.
+- Оцінка ризиків до старту проєкту за напрямами строків, бюджету, обсягу та ресурсів.
+- Реєстр ризиків для фіксації опису ризику, ймовірності, впливу, плану реагування та статусу.
+- Збереження даних у локальній SQLite-базі.
 
-## Run Locally
+## Структура
+
+```text
+app/streamlit_app.py   основний інтерфейс Streamlit
+app/risk_register.py   модуль реєстру ризиків
+app/db.py              робота з SQLite
+model/predict.py       підготовка даних і виклик навченої моделі
+model/train_model.py   навчання моделей
+data/                  база даних і навчальний набір
+```
+
+## Локальний запуск
 
 ```bash
 pip install -r requirements.txt
 streamlit run app/streamlit_app.py
 ```
 
-## Streamlit Cloud
+## Розгортання
 
-Use this app entry point:
+Для Streamlit Cloud потрібно вказати головний файл:
 
 ```text
 app/streamlit_app.py
