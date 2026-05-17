@@ -1,8 +1,18 @@
 import html
+import sys
+from pathlib import Path
 
 import streamlit as st
 import pandas as pd
 import altair as alt
+
+# Streamlit Cloud starts the app from the app/ directory, so the repository
+# root is not always available for imports. Adding it explicitly keeps shared
+# packages such as model/ importable both locally and after deployment.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from db import get_dashboard_stats, init_db, insert_project
 from model.predict import predict_risk
 from risk_register import render_risk_register
