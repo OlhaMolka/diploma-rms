@@ -559,6 +559,7 @@ def render_dashboard():
         type_data = pd.DataFrame(stats["project_types"], columns=["Тип проєкту", "Кількість"])
         type_labels = {
             "core": "Автоматизована банківська система",
+            "ядро банку": "Автоматизована банківська система",
             "integrations": "Інтеграції",
             "data": "Дані",
             "security": "Безпека",
