@@ -329,24 +329,82 @@ st.markdown("""
         margin-bottom: 0.75rem;
     }
 
-    .recent-risk {
-        border-bottom: 1px solid var(--border);
-        padding: 0.75rem 0;
+    .recent-panel {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-left: 5px solid var(--primary);
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(18, 24, 31, 0.05);
+        margin-top: 1.25rem;
+        padding: 1.05rem 1.15rem 0.95rem;
     }
 
-    .recent-risk:last-child {
-        border-bottom: 0;
+    .recent-panel-header {
+        align-items: baseline;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .recent-panel-title {
+        color: var(--text);
+        font-size: 1.35rem;
+    }
+
+    .recent-panel-note {
+        color: var(--muted);
+        font-size: 0.9rem;
+    }
+
+    .recent-risk {
+        background: var(--panel-soft);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-top: 0.65rem;
+        padding: 0.85rem 0.95rem;
     }
 
     .recent-risk-title {
         color: var(--text);
-        font-size: 0.95rem;
-        margin-bottom: 0.2rem;
+        font-size: 1rem;
+        margin-bottom: 0.45rem;
     }
 
     .recent-risk-meta {
+        align-items: center;
         color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
         font-size: 0.84rem;
+        gap: 0.45rem;
+    }
+
+    .recent-risk-project {
+        color: var(--muted);
+        margin-right: 0.2rem;
+    }
+
+    .recent-pill {
+        background: #eef4f7;
+        border-radius: 999px;
+        color: var(--primary);
+        padding: 0.25rem 0.58rem;
+    }
+
+    .recent-pill.high {
+        background: rgba(199, 53, 47, 0.11);
+        color: var(--danger);
+    }
+
+    .recent-pill.medium {
+        background: rgba(196, 106, 27, 0.12);
+        color: var(--accent);
+    }
+
+    .recent-pill.low {
+        background: rgba(47, 185, 120, 0.12);
+        color: var(--success);
     }
 
     div[data-testid="stTextInput"] input,
@@ -586,34 +644,54 @@ def render_dashboard():
             st.altair_chart(type_chart, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown(
-        """
-        <div class="form-heading">
-            <div class="form-heading-title">Останні ризики</div>
-            <div class="form-heading-note">Останні записи з операційного реєстру</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
     if not stats["recent_risks"]:
-        st.markdown('<div class="insight-card">Останніх ризиків ще немає. Додайте перший у реєстрі ризиків.</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="recent-panel">'
+            '<div class="recent-panel-header">'
+            '<div class="recent-panel-title">Останні ризики</div>'
+            '<div class="recent-panel-note">Останні записи з операційного реєстру</div>'
+            '</div>'
+            '<div class="insight-card">Останніх ризиків ще немає. Додайте перший у реєстрі ризиків.</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
         return
+
+    recent_items = []
+    impact_class_map = {
+        "Високий": "high",
+        "Середній": "medium",
+        "Низький": "low"
+    }
 
     for description, project_name, status, impact, probability in stats["recent_risks"]:
         description = html.escape(description)
         project_name = html.escape(project_name)
         status = html.escape(status)
         impact = html.escape(impact)
-        st.markdown(
-            f"""
-            <div class="recent-risk">
-                <div class="recent-risk-title">{description}</div>
-                <div class="recent-risk-meta">{project_name} | {status} | вплив: {impact} | ймовірність: {probability:.2f}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
+        impact_class = impact_class_map.get(impact, "")
+        recent_items.append(
+            f'<div class="recent-risk">'
+            f'<div class="recent-risk-title">{description}</div>'
+            f'<div class="recent-risk-meta">'
+            f'<span class="recent-risk-project">{project_name}</span>'
+            f'<span class="recent-pill">{status}</span>'
+            f'<span class="recent-pill {impact_class}">Вплив: {impact}</span>'
+            f'<span class="recent-pill">Ймовірність: {probability:.2f}</span>'
+            f'</div>'
+            f'</div>'
         )
+
+    st.markdown(
+        '<div class="recent-panel">'
+        '<div class="recent-panel-header">'
+        '<div class="recent-panel-title">Останні ризики</div>'
+        '<div class="recent-panel-note">Останні записи з операційного реєстру</div>'
+        '</div>'
+        f'{"".join(recent_items)}'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
 
 if page == "Дашборд":
