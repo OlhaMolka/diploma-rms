@@ -49,8 +49,11 @@ st.markdown("""
     }
 
     [data-testid="stToolbar"],
+    [data-testid="stHeader"],
+    [data-testid="stHeaderActionElements"],
     [data-testid="stDecoration"],
     [data-testid="stStatusWidget"],
+    .stDeployButton,
     #MainMenu,
     header {
         display: none !important;
@@ -282,30 +285,32 @@ st.markdown("""
         box-shadow: 0 8px 18px rgba(18, 24, 31, 0.06);
     }
 
-    section[data-testid="stSidebar"] {
+    .top-navigation {
+        align-items: center;
         background: #ffffff;
-        border-right: 1px solid var(--border);
+        border: 1px solid var(--border);
+        border-left: 5px solid var(--primary);
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(18, 24, 31, 0.05);
+        display: flex;
+        justify-content: space-between;
+        margin: 0.15rem 0 0.65rem;
+        padding: 0.85rem 1rem;
     }
 
-    section[data-testid="stSidebar"] h1,
-    section[data-testid="stSidebar"] h2,
-    section[data-testid="stSidebar"] h3,
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] label {
-        font-weight: 400 !important;
-    }
-
-    .sidebar-title {
-        color: var(--primary);
+    .top-navigation-title {
+        color: var(--text);
         font-size: 1.05rem;
-        margin: 0.8rem 0 0.25rem;
     }
 
-    .sidebar-note {
+    .top-navigation-note {
         color: var(--muted);
         font-size: 0.85rem;
-        line-height: 1.35;
-        margin-bottom: 1rem;
+        margin-top: 0.2rem;
+    }
+
+    div[data-testid="stSegmentedControl"] {
+        margin-bottom: 1.1rem;
     }
 
     .dashboard-grid {
@@ -530,18 +535,25 @@ st.markdown("""
 
 init_db()
 
-st.sidebar.markdown(
+st.markdown(
     """
-    <div class="sidebar-title">Система управління ризиками</div>
-    <div class="sidebar-note">Прогнозування ризиків та операційний реєстр.</div>
+    <div class="top-navigation">
+        <div>
+            <div class="top-navigation-title">Система управління ризиками</div>
+            <div class="top-navigation-note">Прогнозування ризиків та реєстр ризиків в одному інтерфейсі</div>
+        </div>
+    </div>
     """,
     unsafe_allow_html=True
 )
 
-page = st.sidebar.radio(
+page = st.segmented_control(
     "Навігація",
-    ["Дашборд", "Оцінка ризиків", "Реєстр ризиків"]
+    ["Дашборд", "Оцінка ризиків", "Реєстр ризиків"],
+    default="Дашборд",
+    label_visibility="collapsed"
 )
+page = page or "Дашборд"
 
 
 def render_dashboard():
@@ -649,7 +661,7 @@ def render_dashboard():
             '<div class="recent-panel">'
             '<div class="recent-panel-header">'
             '<div class="recent-panel-title">Останні ризики</div>'
-            '<div class="recent-panel-note">Останні записи з операційного реєстру</div>'
+            '<div class="recent-panel-note">Останні записи з реєстру ризиків</div>'
             '</div>'
             '<div class="insight-card">Останніх ризиків ще немає. Додайте перший у реєстрі ризиків.</div>'
             '</div>',
@@ -686,7 +698,7 @@ def render_dashboard():
         '<div class="recent-panel">'
         '<div class="recent-panel-header">'
         '<div class="recent-panel-title">Останні ризики</div>'
-        '<div class="recent-panel-note">Останні записи з операційного реєстру</div>'
+        '<div class="recent-panel-note">Останні записи з реєстру ризиків</div>'
         '</div>'
         f'{"".join(recent_items)}'
         '</div>',

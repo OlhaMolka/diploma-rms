@@ -198,7 +198,7 @@ def render_risk_register():
         """
         <div class="hero-panel">
             <div>
-                <div class="app-kicker">Операційний контроль ризиків</div>
+                <div class="app-kicker">Контроль реєстру ризиків</div>
                 <div class="hero-title">Реєстр ризиків</div>
                 <p class="hero-copy">Відстежуйте ідентифіковані ризики проєкту, плани реагування та поточний статус виконання.</p>
             </div>
@@ -233,7 +233,7 @@ def render_risk_register():
                 """
                 <div class="form-heading">
                     <div class="form-heading-title">Додати ризик</div>
-                    <div class="form-heading-note">Операційний ризик проєкту</div>
+                    <div class="form-heading-note">Запис у реєстрі ризиків</div>
                 </div>
                 """,
                 unsafe_allow_html=True
