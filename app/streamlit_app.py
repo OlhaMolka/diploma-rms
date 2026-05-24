@@ -18,7 +18,7 @@ from risk_register import render_risk_register
 st.set_page_config(
     page_title="Система управління ризиками",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 st.markdown("""
@@ -45,6 +45,7 @@ st.markdown("""
 
     .block-container {
         max-width: 1240px;
+        padding-left: 6.4rem;
         padding-top: 1.4rem;
         padding-bottom: 3rem;
     }
@@ -53,6 +54,8 @@ st.markdown("""
     [data-testid="stHeaderActionElements"],
     [data-testid="stDecoration"],
     [data-testid="stStatusWidget"],
+    [data-testid="collapsedControl"],
+    section[data-testid="stSidebar"],
     .stDeployButton,
     #MainMenu {
         display: none !important;
@@ -61,11 +64,6 @@ st.markdown("""
 
     [data-testid="stHeader"] {
         background: transparent;
-    }
-
-    [data-testid="collapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
     }
 
     h1, h2, h3,
@@ -293,68 +291,65 @@ st.markdown("""
         box-shadow: 0 8px 18px rgba(18, 24, 31, 0.06);
     }
 
-    section[data-testid="stSidebar"] {
+    .custom-sidebar {
+        align-items: center;
         background: #ffffff;
         border-right: 1px solid var(--border);
-        max-width: 112px !important;
-        min-width: 112px !important;
-        width: 112px !important;
+        bottom: 0;
+        box-shadow: 8px 0 18px rgba(18, 24, 31, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        left: 0;
+        padding: 1rem 0.45rem;
+        position: fixed;
+        top: 0;
+        width: 92px;
+        z-index: 999;
     }
 
-    section[data-testid="stSidebar"] > div,
-    section[data-testid="stSidebar"] [data-testid="stSidebarContent"],
-    section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
-        max-width: 112px !important;
-        min-width: 112px !important;
-        padding: 1.1rem 0.45rem !important;
-        width: 112px !important;
-    }
-
-    .mini-sidebar-title {
+    .custom-sidebar-title {
         color: var(--primary);
         font-size: 0.78rem;
         letter-spacing: 0.08em;
-        margin: 0.15rem 0 1rem;
+        margin: 0.2rem 0 0.55rem;
         text-align: center;
-        text-transform: uppercase;
     }
 
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] [role="radiogroup"] {
-        gap: 0.55rem;
-    }
-
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] label {
+    .custom-nav-link {
         align-items: center;
         background: #ffffff;
         border: 1px solid var(--border);
         border-radius: 8px;
-        color: var(--text);
+        color: var(--text) !important;
+        display: flex;
+        flex-direction: column;
+        font-size: 0.75rem;
+        gap: 0.24rem;
         justify-content: center;
-        min-height: 72px;
-        padding: 0.45rem 0.35rem;
+        line-height: 1.12;
+        min-height: 68px;
         text-align: center;
+        text-decoration: none !important;
+        width: 74px;
     }
 
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
+    .custom-nav-link:hover {
         background: #f7fbf9;
         border-color: var(--primary);
+        color: var(--primary) !important;
     }
 
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {
-        background: rgba(11, 95, 125, 0.10) !important;
-        border-color: var(--primary) !important;
+    .custom-nav-link.active {
+        background: rgba(11, 95, 125, 0.10);
+        border-color: var(--primary);
         box-shadow: inset 4px 0 0 var(--primary);
-        color: var(--primary);
+        color: var(--primary) !important;
     }
 
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] p {
-        font-size: 0.78rem;
-        line-height: 1.15;
-        white-space: pre-line;
-    }
-
-    section[data-testid="stSidebar"] div[data-testid="stRadio"] svg {
-        display: none;
+    .custom-nav-icon {
+        font-size: 1.05rem;
+        line-height: 1;
     }
 
     .dashboard-grid {
@@ -579,24 +574,36 @@ st.markdown("""
 
 init_db()
 
-st.sidebar.markdown(
-    '<div class="mini-sidebar-title">RMS</div>',
+page_param = st.query_params.get("page", "dashboard")
+page_map = {
+    "dashboard": "Дашборд",
+    "assessment": "Оцінка ризиків",
+    "register": "Реєстр ризиків"
+}
+page = page_map.get(page_param, "Дашборд")
+
+nav_items = [
+    ("dashboard", "▦", "Дашборд"),
+    ("assessment", "◇", "Оцінка"),
+    ("register", "☑", "Реєстр")
+]
+nav_links = []
+for page_key, icon, label in nav_items:
+    active_class = " active" if page_param == page_key else ""
+    nav_links.append(
+        f'<a class="custom-nav-link{active_class}" href="?page={page_key}" target="_self">'
+        f'<span class="custom-nav-icon">{icon}</span>'
+        f'<span>{label}</span>'
+        f'</a>'
+    )
+
+st.markdown(
+    '<nav class="custom-sidebar">'
+    '<div class="custom-sidebar-title">RMS</div>'
+    f'{"".join(nav_links)}'
+    '</nav>',
     unsafe_allow_html=True
 )
-
-nav_options = {
-    "▦\nДашборд": "Дашборд",
-    "◇\nОцінка": "Оцінка ризиків",
-    "☑\nРеєстр": "Реєстр ризиків"
-}
-
-selected_nav = st.sidebar.radio(
-    "Навігація",
-    list(nav_options.keys()),
-    index=0,
-    label_visibility="collapsed"
-)
-page = nav_options[selected_nav]
 
 
 def render_dashboard():
