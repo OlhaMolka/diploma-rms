@@ -285,32 +285,68 @@ st.markdown("""
         box-shadow: 0 8px 18px rgba(18, 24, 31, 0.06);
     }
 
-    .top-navigation {
+    section[data-testid="stSidebar"] {
+        background: #ffffff;
+        border-right: 1px solid var(--border);
+        max-width: 112px !important;
+        min-width: 112px !important;
+        width: 112px !important;
+    }
+
+    section[data-testid="stSidebar"] > div,
+    section[data-testid="stSidebar"] [data-testid="stSidebarContent"],
+    section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
+        max-width: 112px !important;
+        min-width: 112px !important;
+        padding: 1.1rem 0.45rem !important;
+        width: 112px !important;
+    }
+
+    .mini-sidebar-title {
+        color: var(--primary);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        margin: 0.15rem 0 1rem;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] [role="radiogroup"] {
+        gap: 0.55rem;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label {
         align-items: center;
         background: #ffffff;
         border: 1px solid var(--border);
-        border-left: 5px solid var(--primary);
         border-radius: 8px;
-        box-shadow: 0 8px 18px rgba(18, 24, 31, 0.05);
-        display: flex;
-        justify-content: space-between;
-        margin: 0.15rem 0 0.65rem;
-        padding: 0.85rem 1rem;
-    }
-
-    .top-navigation-title {
         color: var(--text);
-        font-size: 1.05rem;
+        justify-content: center;
+        min-height: 72px;
+        padding: 0.45rem 0.35rem;
+        text-align: center;
     }
 
-    .top-navigation-note {
-        color: var(--muted);
-        font-size: 0.85rem;
-        margin-top: 0.2rem;
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {
+        background: #f7fbf9;
+        border-color: var(--primary);
     }
 
-    div[data-testid="stSegmentedControl"] {
-        margin-bottom: 1.1rem;
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {
+        background: rgba(11, 95, 125, 0.10) !important;
+        border-color: var(--primary) !important;
+        box-shadow: inset 4px 0 0 var(--primary);
+        color: var(--primary);
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] p {
+        font-size: 0.78rem;
+        line-height: 1.15;
+        white-space: pre-line;
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stRadio"] svg {
+        display: none;
     }
 
     .dashboard-grid {
@@ -535,25 +571,24 @@ st.markdown("""
 
 init_db()
 
-st.markdown(
-    """
-    <div class="top-navigation">
-        <div>
-            <div class="top-navigation-title">Система управління ризиками</div>
-            <div class="top-navigation-note">Прогнозування ризиків та реєстр ризиків в одному інтерфейсі</div>
-        </div>
-    </div>
-    """,
+st.sidebar.markdown(
+    '<div class="mini-sidebar-title">RMS</div>',
     unsafe_allow_html=True
 )
 
-page = st.segmented_control(
+nav_options = {
+    "▦\nДашборд": "Дашборд",
+    "◇\nОцінка": "Оцінка ризиків",
+    "☑\nРеєстр": "Реєстр ризиків"
+}
+
+selected_nav = st.sidebar.radio(
     "Навігація",
-    ["Дашборд", "Оцінка ризиків", "Реєстр ризиків"],
-    default="Дашборд",
+    list(nav_options.keys()),
+    index=0,
     label_visibility="collapsed"
 )
-page = page or "Дашборд"
+page = nav_options[selected_nav]
 
 
 def render_dashboard():
