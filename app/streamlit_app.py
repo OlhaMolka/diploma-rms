@@ -17,7 +17,8 @@ from risk_register import render_risk_register
 
 st.set_page_config(
     page_title="Система управління ризиками",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 st.markdown("""
@@ -49,15 +50,22 @@ st.markdown("""
     }
 
     [data-testid="stToolbar"],
-    [data-testid="stHeader"],
     [data-testid="stHeaderActionElements"],
     [data-testid="stDecoration"],
     [data-testid="stStatusWidget"],
     .stDeployButton,
-    #MainMenu,
-    header {
+    #MainMenu {
         display: none !important;
         visibility: hidden !important;
+    }
+
+    [data-testid="stHeader"] {
+        background: transparent;
+    }
+
+    [data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
     }
 
     h1, h2, h3,
