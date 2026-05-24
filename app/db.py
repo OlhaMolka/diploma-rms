@@ -136,6 +136,31 @@ def insert_risk(data):
     conn.close()
 
 
+def update_risk(risk_id, data):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE risks
+        SET description = ?,
+            probability = ?,
+            impact = ?,
+            mitigation = ?,
+            status = ?
+        WHERE id = ?
+    """, (
+        data["description"],
+        data["probability"],
+        data["impact"],
+        data["mitigation"],
+        data["status"],
+        risk_id
+    ))
+
+    conn.commit()
+    conn.close()
+
+
 def get_project_risks(project_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
