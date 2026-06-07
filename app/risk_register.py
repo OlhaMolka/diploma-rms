@@ -235,59 +235,216 @@ def render_risk_register():
     form_col, list_col = st.columns([0.9, 1.1], gap="large")
 
     with form_col:
+    
         with st.container(border=True):
             st.markdown(
-                """
-                <div class="form-heading">
-                    <div class="form-heading-title">Додати ризик</div>
-                    <div class="form-heading-note">Запис у реєстрі ризиків</div>
-                </div>
-                """,
-                unsafe_allow_html=True
+            """
+            <div class="form-heading">
+                <div class="form-heading-title">Додати ризик</div>
+                <div class="form-heading-note">Запис у реєстрі ризиків</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        with st.form("add_risk_form", clear_on_submit=True):
+            description = st.text_input("Опис ризику", key="add_risk_description")
+
+            probability = st.number_input(
+                "Ймовірність",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.3,
+                step=0.05,
+                key="add_risk_probability"
             )
 
-            with st.form("add_risk_form", clear_on_submit=True):
-                description = st.text_input("Опис ризику")
+            impact = st.segmented_control(
+                "Вплив",
+                ["Низький", "Середній", "Високий"],
+                default="Середній",
+                key="add_risk_impact"
+            )
+            impact = impact or "Середній"
 
-                probability = st.number_input(
-                    "Ймовірність",
-                    min_value=0.0,
-                    max_value=1.0,
-                    value=0.3,
-                    step=0.05
+            mitigation = st.text_area(
+                "План реагування",
+                height=120,
+                key="add_risk_mitigation"
+            )
+
+            status = st.segmented_control(
+                "Статус",
+                ["Відкритий", "В роботі", "Закритий"],
+                default="Відкритий",
+                key="add_risk_status"
+            )
+            status = status or "Відкритий"
+
+            submitted = st.form_submit_button(
+                "Додати ризик",
+                use_container_width=True
+            )
+
+        if submitted:
+            if not description.strip():
+                st.error("Опис ризику є обов’язковим.")
+            else:
+                insert_risk({
+                    "project_id": project_id,
+                    "description": description.strip(),
+                    "probability": probability,
+                    "impact": impact,
+                    "mitigation": mitigation.strip(),
+                    "status": status
+                })
+
+                st.markdown(
+                    '<div class="status-text">Ризик додано</div>',
+                    unsafe_allow_html=True
                 )
 
-                impact = st.segmented_control(
-                    "Вплив",
-                    ["Низький", "Середній", "Високий"],
-                    default="Середній"
+                st.rerun()
+
+    st.write("")
+
+    st.markdown(
+        """
+        <div class="form-heading">
+            <div class="form-heading-title">Редагувати ризик</div>
+            <div class="form-heading-note">Оновлення запису під час виконання проєкту</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    risk_rows = get_project_risks(project_id)
+
+    if risk_rows:
+        risks = pd.DataFrame(
+            risk_rows,
+            columns=[
+                "ID",
+                "Ризик",
+                "Ймовірність",
+                "Вплив",
+                "План реагування",
+                "Статус",
+                "Створено"
+            ]
+        )
+
+        risks["Ризик"] = risks["Ризик"].fillna("Ризик без назви")
+        risks["Ймовірність"] = risks["Ймовірність"].fillna(0)
+        risks["Вплив"] = risks["Вплив"].fillna("Середній").map(
+            lambda value: IMPACT_LABEL.get(value, value)
+        )
+        risks["План реагування"] = risks["План реагування"].fillna("")
+        risks["Статус"] = risks["Статус"].fillna("Відкритий").map(
+            lambda value: STATUS_LABEL.get(value, value)
+        )
+
+        edit_options = {
+            f"#{int(row['ID'])} | {row['Ризик']}": int(row["ID"])
+            for _, row in risks.iterrows()
+        }
+
+        selected_risk_label = st.selectbox(
+            "Оберіть ризик для редагування",
+            list(edit_options.keys())
+        )
+
+        selected_risk_id = edit_options[selected_risk_label]
+
+        selected_risk = risks.loc[
+            risks["ID"] == selected_risk_id
+        ].iloc[0]
+
+        impact_options = [
+            "Низький",
+            "Середній",
+            "Високий"
+        ]
+
+        status_options = [
+            "Відкритий",
+            "В роботі",
+            "Закритий"
+        ]
+
+        with st.form("edit_risk_form"):
+
+            edited_description = st.text_input(
+                "Опис ризику",
+                value=selected_risk["Ризик"],
+                key="edit_risk_description"
+            )
+
+            edited_probability = st.number_input(
+                "Ймовірність",
+                min_value=0.0,
+                max_value=1.0,
+                value=float(selected_risk["Ймовірність"]),
+                step=0.05,
+                key="edit_probability"
+            )
+
+            edited_impact = st.segmented_control(
+                "Вплив",
+                impact_options,
+                default=impact_options[
+                    _option_index(
+                        impact_options,
+                        selected_risk["Вплив"],
+                        1
+                    )
+                ],
+                key="edit_impact"
+            )
+
+            edited_mitigation = st.text_area(
+                "План реагування",
+                value=selected_risk["План реагування"],
+                height=110,
+                key="edit_risk_mitigation"
+            )
+
+            edited_status = st.segmented_control(
+                "Статус",
+                status_options,
+                default=status_options[
+                    _option_index(
+                        status_options,
+                        selected_risk["Статус"],
+                        0
+                    )
+                ],
+                key="edit_status"
+            )
+
+            saved = st.form_submit_button(
+                "Зберегти зміни",
+                use_container_width=True
+            )
+
+        if saved:
+            if not edited_description.strip():
+                st.error("Опис ризику є обов’язковим.")
+            else:
+                update_risk(selected_risk_id, {
+                    "description": edited_description.strip(),
+                    "probability": edited_probability,
+                    "impact": edited_impact or selected_risk["Вплив"],
+                    "mitigation": edited_mitigation.strip(),
+                    "status": edited_status or selected_risk["Статус"]
+                })
+
+                st.markdown(
+                    '<div class="status-text">Ризик оновлено</div>',
+                    unsafe_allow_html=True
                 )
-                impact = impact or "Середній"
 
-                mitigation = st.text_area("План реагування", height=120)
-
-                status = st.segmented_control(
-                    "Статус",
-                    ["Відкритий", "В роботі", "Закритий"],
-                    default="Відкритий"
-                )
-                status = status or "Відкритий"
-
-                submitted = st.form_submit_button("Додати ризик", use_container_width=True)
-
-            if submitted:
-                if not description.strip():
-                    st.error("Опис ризику є обов’язковим.")
-                else:
-                    insert_risk({
-                        "project_id": project_id,
-                        "description": description.strip(),
-                        "probability": probability,
-                        "impact": impact,
-                        "mitigation": mitigation.strip(),
-                        "status": status
-                    })
-                    st.markdown('<div class="status-text">Ризик додано</div>', unsafe_allow_html=True)
+                st.rerun()
 
     with list_col:
         st.markdown(
@@ -343,74 +500,6 @@ def render_risk_register():
 
         for _, row in risks.iterrows():
             _risk_card(row)
-
-        st.markdown(
-            """
-            <div class="form-heading">
-                <div class="form-heading-title">Редагувати ризик</div>
-                <div class="form-heading-note">Оновлення запису під час виконання проєкту</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        edit_options = {
-            f"#{int(row['ID'])} | {row['Ризик']}": int(row["ID"])
-            for _, row in risks.iterrows()
-        }
-        selected_risk_label = st.selectbox("Оберіть ризик для редагування", list(edit_options.keys()))
-        selected_risk_id = edit_options[selected_risk_label]
-        selected_risk = risks.loc[risks["ID"] == selected_risk_id].iloc[0]
-
-        impact_options = ["Низький", "Середній", "Високий"]
-        status_options = ["Відкритий", "В роботі", "Закритий"]
-
-        with st.form("edit_risk_form"):
-            edited_description = st.text_input(
-                "Опис ризику",
-                value=selected_risk["Ризик"]
-            )
-            edited_probability = st.number_input(
-                "Ймовірність",
-                min_value=0.0,
-                max_value=1.0,
-                value=float(selected_risk["Ймовірність"]),
-                step=0.05,
-                key="edit_probability"
-            )
-            edited_impact = st.segmented_control(
-                "Вплив",
-                impact_options,
-                default=impact_options[_option_index(impact_options, selected_risk["Вплив"], 1)],
-                key="edit_impact"
-            )
-            edited_mitigation = st.text_area(
-                "План реагування",
-                value=selected_risk["План реагування"],
-                height=110
-            )
-            edited_status = st.segmented_control(
-                "Статус",
-                status_options,
-                default=status_options[_option_index(status_options, selected_risk["Статус"], 0)],
-                key="edit_status"
-            )
-
-            saved = st.form_submit_button("Зберегти зміни", use_container_width=True)
-
-        if saved:
-            if not edited_description.strip():
-                st.error("Опис ризику є обов’язковим.")
-            else:
-                update_risk(selected_risk_id, {
-                    "description": edited_description.strip(),
-                    "probability": edited_probability,
-                    "impact": edited_impact or selected_risk["Вплив"],
-                    "mitigation": edited_mitigation.strip(),
-                    "status": edited_status or selected_risk["Статус"]
-                })
-                st.markdown('<div class="status-text">Ризик оновлено</div>', unsafe_allow_html=True)
-                st.rerun()
 
         st.dataframe(
             risks[["Ризик", "Ймовірність", "Вплив", "Оцінка", "Рівень", "Статус"]],
